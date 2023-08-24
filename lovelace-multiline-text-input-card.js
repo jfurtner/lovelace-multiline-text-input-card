@@ -266,11 +266,11 @@
 		}
 
 		callService(service) {
-			if(this.state.entity_type === 'input_text' || this.state.entity_type === 'var') {
+			if(this.state.entity_type === 'input_text' || this.state.entity_type === 'var' || this.state.entity_type === 'sensor') {
 				let value = (typeof this.state.service_values[service] === 'function' ? this.state.service_values[service]() : this.state.service_values[service]);
 				if(this.state.service[service]) {
-					let _this = this;
-					this._hass.callService(this.state.entity_type, this.state.service[service], {entity_id: this.stateObj.entity_id, value: value}).then(function(response) { _this.displayMessage(service, true) }, function(error) { _this.displayMessage(service, false) });
+					let _this = this;					
+					this._hass.callService(this.state.service[service]['domain'], this.state.service[service]['service'], {entity_id: this.stateObj.entity_id, value: value}).then(function(response) { _this.displayMessage(service, true) }, function(error) { _this.displayMessage(service, false) });
 				}
 			}
 		}
@@ -338,6 +338,7 @@
 			const supported_entity_types = [
 				'input_text',
 				'var', 		// custom component: https://community.home-assistant.io/t/custom-component-generic-variable-entities/128627
+				'sensor',	// custom component: https://github.com/Wibias/hass-variables
 			];
 
 			const actions = {
@@ -349,10 +350,22 @@
 			// paste has no service, clear must be "confirmed" by saving
 			const services = {
 				'input_text': {
-					save: 'set_value',
+					save: {
+						service: 'set_value',
+						domain: 'input_text'
+					},
 				},
 				'var': {
-					save: 'set',
+					save: {
+						service: 'set',
+						domain: 'var'
+					}
+				},
+				'sensor': {
+					save: {
+						service: 'update_sensor',
+						domain: 'variable'
+					}
 				},
 			};
 
